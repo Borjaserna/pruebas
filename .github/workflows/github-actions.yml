@@ -20,7 +20,7 @@ jobs:
       - name: Login en Azure
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZUREPSSWD }}
+          creds: ${{ secrets.SECRET }}
  
       - name: Inicializar Terraform
         run: terraform init
