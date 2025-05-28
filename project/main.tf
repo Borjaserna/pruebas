@@ -1,13 +1,18 @@
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-security-monitoring"
+  location = var.location
+}
+
 resource "azurerm_virtual_network" "vnet" {
   name                = "vnet-security"
   location            = var.location
-  resource_group_name = "rg-security-monitoring"
+  resource_group_name = azurerm_resource_group.rg.name
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "private_subnet" {
   name                 = "private-subnet"
-  resource_group_name  = "rg-security-monitoring"
+  resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
 }
@@ -15,14 +20,14 @@ resource "azurerm_subnet" "private_subnet" {
 resource "azurerm_public_ip" "vm_ip" {
   name                = "vm-public-ip"
   location            = var.location
-  resource_group_name = "rg-security-monitoring"
+  resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Dynamic"
 }
 
 resource "azurerm_network_interface" "vm_nic" {
   name                = "vm-nic"
   location            = var.location
-  resource_group_name = "rg-security-monitoring"
+  resource_group_name = azurerm_resource_group.rg.name
 
   ip_configuration {
     name                          = "primary"
@@ -35,7 +40,7 @@ resource "azurerm_network_interface" "vm_nic" {
 resource "azurerm_virtual_machine" "vm" {
   name                  = "vm-security"
   location              = var.location
-  resource_group_name   = "rg-security-monitoring"
+  resource_group_name   = azurerm_resource_group.rg.name
   network_interface_ids = [azurerm_network_interface.vm_nic.id]
   vm_size               = var.vm_size
 
@@ -67,7 +72,7 @@ resource "azurerm_virtual_machine" "vm" {
 resource "azurerm_log_analytics_workspace" "log_analytics" {
   name                = "log-analytics-workspace"
   location            = var.location
-  resource_group_name = "rg-security-monitoring"
+  resource_group_name = azurerm_resource_group.rg.name
   sku                 = "PerGB2018"
   retention_in_days   = 30
 }
@@ -91,8 +96,8 @@ resource "azurerm_policy_definition" "vm_restriction" {
   RULE
 }
 
-resource "azurerm_subscription_policy_assignment" "vm_restriction_assignment" {
+resource "azurerm_resource_group_policy_assignment" "vm_restriction_assignment" {
   name                 = "vm-restriction-assignment"
-  subscription_id      = "/subscriptions/202bcb41-aac1-46a6-9301-fa2a1c4f9aee"
+  resource_group_id    = azurerm_resource_group.rg.id
   policy_definition_id = azurerm_policy_definition.vm_restriction.id
 }
