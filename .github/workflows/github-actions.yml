@@ -24,16 +24,16 @@ jobs:
  
       - name: Inicializar Terraform
         run: terraform init
-        working-directory: ./terraform
+        working-directory: ./project
  
       - name: Validar Terraform
         run: terraform validate
-        working-directory: ./terraform
+        working-directory: ./project
  
       - name: Plan de Terraform
         run: terraform plan
-        working-directory: ./terraform
+        working-directory: ./project
  
       - name: Apply de Terraform
         run: terraform apply -auto-approve
-        working-directory: ./terraform
+        working-directory: ./project
