@@ -77,9 +77,9 @@ resource "azurerm_log_analytics_workspace" "log_analytics" {
   retention_in_days   = 30
 }
 
-resource "azurerm_policy_assignment" "allowed_vm_sizes" {
+resource "azurerm_resource_group_policy_assignment" "allowed_vm_sizes" {
   name                 = "allowed-vm-sizes"
-  scope                = azurerm_resource_group.rg.id
+  resource_group_id    = azurerm_resource_group.rg.id
   policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/0a914e76-4921-4c3c-8ae3-fb9b94b2b1a2" # Built-in: Allowed virtual machine SKUs
   parameters = <<PARAMS
     {
