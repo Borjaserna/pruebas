@@ -13,5 +13,5 @@ variable "location" {
 variable "vm_size" {
   description = "Tamaño de la máquina virtual"
   type        = string
-  default     = "Standard_DS1_v2"
+  default     = ["Standard_DS1_v2", "Standard_DS2_v2"]
 }
