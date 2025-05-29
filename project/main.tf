@@ -61,14 +61,18 @@ resource "azurerm_virtual_machine" "vm" {
   os_profile {
     computer_name  = "vm-security"
     admin_username = "adminuser"
-    admin_password = "YourSecurePassword123!"
+    admin_ssh_key {
+      username   = "adminuser"
+      public_key = file("~/.ssh/id_rsa.pub")
+    }
   }
 
   os_profile_linux_config {
-    disable_password_authentication = false
+    disable_password_authentication = true
   }
 }
 
+# 📌 Workspace de Log Analytics para recopilar métricas y logs
 resource "azurerm_log_analytics_workspace" "log_analytics" {
   name                = "log-analytics-workspace"
   location            = var.location
@@ -77,15 +81,70 @@ resource "azurerm_log_analytics_workspace" "log_analytics" {
   retention_in_days   = 30
 }
 
-resource "azurerm_resource_group_policy_assignment" "allowed_vm_sizes" {
-  name                 = "allowed-vm-sizes"
-  resource_group_id    = azurerm_resource_group.rg.id
-  policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/0a914e76-4921-4c3c-8ae3-fb9b94b2b1a2" # Built-in: Allowed virtual machine SKUs
-  parameters = <<PARAMS
+# 📌 Capturar Logs de actividad en Azure Monitor
+resource "azurerm_monitor_activity_log_alert" "vm_activity_logs" {
+  name                = "vm-activity-alert"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location
+  scopes              = [azurerm_virtual_machine.vm.id]
+
+  criteria {
+    category = "Administrative"
+    operation_name = "Microsoft.Compute/virtualMachines/write"
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.alert_action_group.id
+  }
+}
+
+# 📌 Grupo de acción para alertas en Azure Monitor
+resource "azurerm_monitor_action_group" "alert_action_group" {
+  name                = "vm-alerts-action-group"
+  resource_group_name = azurerm_resource_group.rg.name
+  short_name          = "VMAlerts"
+
+  email_receiver {
+    name          = "AdminEmail"
+    email_address = "admin@example.com"
+  }
+}
+
+# 📌 Dashboard en Azure Monitor para visualizar métricas clave
+resource "azurerm_monitor_workbook" "vm_dashboard" {
+  name                = "vm-performance-dashboard"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location
+  display_name        = "VM Performance Dashboard"
+  category            = "Performance"
+  source_id           = azurerm_log_analytics_workspace.log_analytics.id
+
+  workbook_json = <<JSON
+{
+  "version": "1.0",
+  "items": [
     {
-      "listOfAllowedSKUs": {
-        "value": ["Standard_DS1_v2", "Standard_DS2_v2"]
-      }
+      "type": "MetricChart",
+      "position": { "x": 0, "y": 0, "width": 6, "height": 4 },
+      "metrics": [
+        {
+          "resource": "${azurerm_virtual_machine.vm.id}",
+          "namespace": "Microsoft.Compute/virtualMachines",
+          "name": "Percentage CPU"
+        },
+        {
+          "resource": "${azurerm_virtual_machine.vm.id}",
+          "namespace": "Microsoft.Compute/virtualMachines",
+          "name": "Available Memory Bytes"
+        }
+      ]
+    },
+    {
+      "type": "ActivityLog",
+      "position": { "x": 0, "y": 5, "width": 6, "height": 4 },
+      "category": "Administrative"
     }
-  PARAMS
+  ]
+}
+JSON
 }
