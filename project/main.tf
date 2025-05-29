@@ -1,8 +1,10 @@
+# Crea un grupo de recursos en Azure para contener todos los recursos relacionados
 resource "azurerm_resource_group" "rg" {
   name     = "rg-security-monitoring"
   location = var.location
 }
 
+# Crea una red virtual (VNet) en Azure para aislar y segmentar recursos
 resource "azurerm_virtual_network" "vnet" {
   name                = "vnet-security"
   location            = var.location
@@ -10,6 +12,7 @@ resource "azurerm_virtual_network" "vnet" {
   address_space       = ["10.0.0.0/16"]
 }
 
+# Crea una subred privada dentro de la VNet para alojar recursos internos
 resource "azurerm_subnet" "private_subnet" {
   name                 = "private-subnet"
   resource_group_name  = azurerm_resource_group.rg.name
@@ -17,6 +20,7 @@ resource "azurerm_subnet" "private_subnet" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
+# Crea una IP pública para la máquina virtual
 resource "azurerm_public_ip" "vm_ip" {
   name                = "vm-public-ip"
   location            = var.location
@@ -24,6 +28,7 @@ resource "azurerm_public_ip" "vm_ip" {
   allocation_method   = "Dynamic"
 }
 
+# Crea una interfaz de red y la asocia a la subred y a la IP pública
 resource "azurerm_network_interface" "vm_nic" {
   name                = "vm-nic"
   location            = var.location
@@ -37,6 +42,7 @@ resource "azurerm_network_interface" "vm_nic" {
   }
 }
 
+# Crea una máquina virtual Linux (Ubuntu) y la configura con la red y disco
 resource "azurerm_virtual_machine" "vm" {
   name                  = "vm-security"
   location              = var.location
@@ -69,7 +75,7 @@ resource "azurerm_virtual_machine" "vm" {
   }
 }
 
-# Workspace de Log Analytics para recopilar métricas y logs
+# Crea un workspace de Log Analytics para recopilar métricas y logs de recursos
 resource "azurerm_log_analytics_workspace" "log_analytics" {
   name                = "log-analytics-workspace"
   location            = var.location
@@ -78,7 +84,7 @@ resource "azurerm_log_analytics_workspace" "log_analytics" {
   retention_in_days   = 30
 }
 
-# Capturar Logs de actividad en Azure Monitor
+# Crea una alerta de logs de actividad para detectar cambios administrativos en la VM
 resource "azurerm_monitor_activity_log_alert" "vm_activity_logs" {
   name                = "vm-activity-alert"
   resource_group_name = azurerm_resource_group.rg.name
@@ -95,7 +101,7 @@ resource "azurerm_monitor_activity_log_alert" "vm_activity_logs" {
   }
 }
 
-# 📌 Grupo de acción para alertas en Azure Monitor
+# Crea un grupo de acción para enviar notificaciones por email cuando se active una alerta
 resource "azurerm_monitor_action_group" "alert_action_group" {
   name                = "vm-alerts-action-group"
   resource_group_name = azurerm_resource_group.rg.name
@@ -107,7 +113,7 @@ resource "azurerm_monitor_action_group" "alert_action_group" {
   }
 }
 
-# 📌 Dashboard en Azure Monitor usando azurerm_dashboard
+# Crea un dashboard en Azure Monitor para visualizar el rendimiento de la VM
 resource "azurerm_dashboard" "vm_dashboard" {
   name                = "vm-performance-dashboard"
   resource_group_name = azurerm_resource_group.rg.name

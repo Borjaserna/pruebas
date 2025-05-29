@@ -1,3 +1,4 @@
+# Configuración de los proveedores requeridos para el proyecto Terraform
 terraform {
   required_providers {
     azurerm = {
@@ -7,6 +8,7 @@ terraform {
   }
 }
 
+# Configura el proveedor de AzureRM y sus características específicas
 provider "azurerm" {
   features {
     resource_group {

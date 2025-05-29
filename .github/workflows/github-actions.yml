@@ -9,39 +9,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Obtener código fuente del repositorio
+      - name: <checkout@v3> Obtener código fuente del repositorio
         uses: actions/checkout@v3
 
-      - name: Configurar entorno y versión de Terraform
+      - name: <setup & version> Configurar entorno y versión de Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.6.6
 
-      - name: Autenticarse en Azure con credenciales seguras
+      - name: <login con secretos> Autenticarse en Azure con credenciales seguras
         uses: azure/login@v1
         with:
           creds: ${{ secrets.SECRET }}
 
-      - name: Inicializar módulos y backend en Terraform
+      - name: <terraform init> Inicializar módulos y backend en Terraform
         run: terraform init
         working-directory: ./project
 
-      - name: Validar sintaxis y configuración de Terraform
+      - name: <terraform validate> Validar sintaxis y configuración de Terraform
         run: terraform validate
         working-directory: ./project
 
-      - name: Generar plan detallado de cambios en la infraestructura
+      - name: <terraform plan> Generar plan detallado de cambios en la infraestructura
         run: terraform plan
         working-directory: ./project
 
-      - name: Aplicar configuración y desplegar infraestructura
+      - name: <terraform apply> Aplicar configuración y desplegar infraestructura
         run: terraform apply -auto-approve
         working-directory: ./project
 
-      - name: Esperar 5 minutos antes de destruir infraestructura
+      - name: <sleep> Esperar 5 minutos antes de destruir infraestructura
         run: sleep 300
         working-directory: ./project
 
-      - name: Eliminar infraestructura con Terraform
+      - name: <terraform destroy> Eliminar infraestructura con Terraform
         run: terraform destroy -auto-approve
         working-directory: ./project
