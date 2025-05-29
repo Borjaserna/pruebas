@@ -1,39 +1,47 @@
-name: Terraform Deployment
- 
+name: Implementación de Infraestructura con Terraform
+
 on:
-  workflow_dispatch: 
- 
+  workflow_dispatch:
+
 jobs:
   terraform:
-    name: Despliegue Terraform
+    name: Despliegue automático con Terraform
     runs-on: ubuntu-latest
- 
+
     steps:
-      - name: Checkout del codigo
+      - name: Obtener código fuente del repositorio
         uses: actions/checkout@v3
- 
-      - name: Configurar Terraform
+
+      - name: Configurar entorno y versión de Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.6.6
- 
-      - name: Login en Azure
+
+      - name: Autenticarse en Azure con credenciales seguras
         uses: azure/login@v1
         with:
           creds: ${{ secrets.SECRET }}
- 
-      - name: Inicializar Terraform
+
+      - name: Inicializar módulos y backend en Terraform
         run: terraform init
         working-directory: ./project
- 
-      - name: Validar Terraform
+
+      - name: Validar sintaxis y configuración de Terraform
         run: terraform validate
         working-directory: ./project
- 
-      - name: Plan de Terraform
+
+      - name: Generar plan detallado de cambios en la infraestructura
         run: terraform plan
         working-directory: ./project
- 
-      - name: Apply de Terraform
+
+      - name: Aplicar configuración y desplegar infraestructura
         run: terraform apply -auto-approve
+        working-directory: ./project
+
+      - name: Esperar 5 minutos antes de destruir infraestructura
+        run: sleep 300
+        working-directory: ./project
+
+      - name: Eliminar infraestructura con Terraform
+        run: terraform destroy -auto-approve
         working-directory: ./project
