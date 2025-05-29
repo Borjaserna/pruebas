@@ -82,7 +82,7 @@ resource "azurerm_log_analytics_workspace" "log_analytics" {
 resource "azurerm_monitor_activity_log_alert" "vm_activity_logs" {
   name                = "vm-activity-alert"
   resource_group_name = azurerm_resource_group.rg.name
-  location            = var.location
+  location            = "global"
   scopes              = [azurerm_virtual_machine.vm.id]
 
   criteria {
