@@ -61,10 +61,7 @@ resource "azurerm_virtual_machine" "vm" {
   os_profile {
     computer_name  = "vm-security"
     admin_username = "adminuser"
-    admin_ssh_key {
-      username   = "adminuser"
-      public_key = file("~/.ssh/id_rsa.pub")
-    }
+    admin_password = "YourSecurePassword123!"
   }
 
   os_profile_linux_config {
@@ -110,41 +107,42 @@ resource "azurerm_monitor_action_group" "alert_action_group" {
   }
 }
 
-# 📌 Dashboard en Azure Monitor para visualizar métricas clave
-resource "azurerm_monitor_workbook" "vm_dashboard" {
+# 📌 Dashboard en Azure Monitor usando azurerm_dashboard
+resource "azurerm_dashboard" "vm_dashboard" {
   name                = "vm-performance-dashboard"
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location
-  display_name        = "VM Performance Dashboard"
-  category            = "Performance"
-  source_id           = azurerm_log_analytics_workspace.log_analytics.id
+  tags                = {}
 
-  workbook_json = <<JSON
+  dashboard_properties = <<PROPS
 {
-  "version": "1.0",
-  "items": [
-    {
-      "type": "MetricChart",
-      "position": { "x": 0, "y": 0, "width": 6, "height": 4 },
-      "metrics": [
-        {
-          "resource": "${azurerm_virtual_machine.vm.id}",
-          "namespace": "Microsoft.Compute/virtualMachines",
-          "name": "Percentage CPU"
-        },
-        {
-          "resource": "${azurerm_virtual_machine.vm.id}",
-          "namespace": "Microsoft.Compute/virtualMachines",
-          "name": "Available Memory Bytes"
+  "lenses": {
+    "0": {
+      "order": 0,
+      "parts": {
+        "0": {
+          "position": { "x": 0, "y": 0, "rowSpan": 2, "colSpan": 3 },
+          "metadata": {
+            "inputs": [
+              { "name": "resourceType", "value": "Microsoft.Compute/virtualMachines" },
+              { "name": "resourceId", "value": "${azurerm_virtual_machine.vm.id}" }
+            ],
+            "type": "Extension/HubsExtension/PartType/ResourceGraph" 
+          }
         }
-      ]
-    },
-    {
-      "type": "ActivityLog",
-      "position": { "x": 0, "y": 5, "width": 6, "height": 4 },
-      "category": "Administrative"
+      }
     }
-  ]
+  },
+  "metadata": {
+    "model": {
+      "timeRange": {
+        "value": {
+          "relative": "24h"
+        },
+        "type": "MsPortalFx.Composition.Configuration.ValueTypes.TimeRange" 
+      }
+    }
+  }
 }
-JSON
+PROPS
 }
