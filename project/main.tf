@@ -69,7 +69,7 @@ resource "azurerm_virtual_machine" "vm" {
   }
 }
 
-# 📌 Workspace de Log Analytics para recopilar métricas y logs
+# Workspace de Log Analytics para recopilar métricas y logs
 resource "azurerm_log_analytics_workspace" "log_analytics" {
   name                = "log-analytics-workspace"
   location            = var.location
@@ -78,7 +78,7 @@ resource "azurerm_log_analytics_workspace" "log_analytics" {
   retention_in_days   = 30
 }
 
-# 📌 Capturar Logs de actividad en Azure Monitor
+# Capturar Logs de actividad en Azure Monitor
 resource "azurerm_monitor_activity_log_alert" "vm_activity_logs" {
   name                = "vm-activity-alert"
   resource_group_name = azurerm_resource_group.rg.name
