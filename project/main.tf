@@ -49,7 +49,6 @@ resource "azurerm_virtual_machine" "vm" {
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
-    delete_os_disk_on_termination = true
   }
 
   storage_image_reference {
